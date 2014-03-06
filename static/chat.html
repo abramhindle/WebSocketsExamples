@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8"/>
+<title>Chat Example</title>
+</head>
+<body>
+<style>
+    .msg {
+        padding: 1em;
+        border-radius: 1.5em;
+        box-shadow: 0.6em 0.6em 0.3em #888888;
+        margin: 1em; 
+    }
+    #queue {
+        margin: 1em;
+    }
+</style>
+<div id="debug"></div>
+<input id="message"/>
+<div id="queue">
+</div>
+<script>
+window.onload = function() {
+    var messageInput = document.getElementById("message");
+    var queue = document.getElementById("queue");
+    var host = window.location.host;
+    var url = "ws://"+host+"/subscribe";   
+    var socket = new WebSocket(url);
+    socket.onopen = function() {
+    };
+    socket.onerror = function(msg) {
+        debug("WebSocket Error:" + msg.data);
+    };
+    socket.onmessage = function(msg) {  
+        try {
+            var message = JSON.parse(msg.data);
+            addMessage(message["msg"]);
+        } catch (e) {
+            alert("socket on message: " + e);
+        }
+    }; 
+    messageInput.onkeyup = function(evt) {
+        if (evt.keyCode === 13) {
+            socket.send( JSON.stringify( {"msg": messageInput.value } ) );
+            messageInput.value = "";
+            return evt.preventDefault();
+        }
+    };
+    function debug(str) {
+        var debugDiv = document.getElementById('debug');
+        debugDiv.innerHTML = "" + str;
+    };
+    function addMessage( msg ) {
+        var msgDiv = document.createElement("span");
+        msgDiv.className = "msg";
+        msgDiv.appendChild(new Text(msg));
+        queue.appendChild( msgDiv );
+    };
+};
+</script>
+</body>
+</html>
